@@ -51,16 +51,19 @@ public abstract sealed class Move
     /** Execute this move and return the new immutable Board. */
     public Board execute() {
         final Board.Builder builder = new Board.Builder();
-        // Place all current player's pieces except the moved piece
-        board.currentPlayer().getActivePieces().stream()
+        final com.chess.engine.Alliance movingAlliance = this.movedPiece.getPieceAlliance();
+        final com.chess.engine.Alliance opponentAlliance = movingAlliance.getOpponent();
+
+        // Place all moving player's pieces except the moved piece
+        (movingAlliance.isWhite() ? board.getWhitePieces() : board.getBlackPieces()).stream()
              .filter(p -> !movedPiece.equals(p))
              .forEach(builder::setPiece);
         // Place opponent's pieces
-        board.currentPlayer().getOpponent().getActivePieces()
+        (opponentAlliance.isWhite() ? board.getWhitePieces() : board.getBlackPieces())
              .forEach(builder::setPiece);
         // Place the moved piece at its new position
         builder.setPiece(movedPiece.movePiece(this));
-        builder.setMoveMaker(board.currentPlayer().getOpponent().getAlliance());
+        builder.setMoveMaker(opponentAlliance);
         return builder.build();
     }
 
@@ -138,12 +141,15 @@ public abstract sealed class Move
         @Override
         public Board execute() {
             final Board.Builder builder = new Board.Builder();
-            board.currentPlayer().getActivePieces().stream()
+            final com.chess.engine.Alliance movingAlliance = this.movedPiece.getPieceAlliance();
+            final com.chess.engine.Alliance opponentAlliance = movingAlliance.getOpponent();
+
+            (movingAlliance.isWhite() ? board.getWhitePieces() : board.getBlackPieces()).stream()
                  .filter(p -> !movedPiece.equals(p)).forEach(builder::setPiece);
-            board.currentPlayer().getOpponent().getActivePieces().stream()
+            (opponentAlliance.isWhite() ? board.getWhitePieces() : board.getBlackPieces()).stream()
                  .filter(p -> !attackedPiece.equals(p)).forEach(builder::setPiece);
             builder.setPiece(movedPiece.movePiece(this));
-            builder.setMoveMaker(board.currentPlayer().getOpponent().getAlliance());
+            builder.setMoveMaker(opponentAlliance);
             return builder.build();
         }
     }
@@ -155,13 +161,16 @@ public abstract sealed class Move
         @Override
         public Board execute() {
             final Board.Builder builder = new Board.Builder();
-            board.currentPlayer().getActivePieces().stream()
+            final com.chess.engine.Alliance movingAlliance = this.movedPiece.getPieceAlliance();
+            final com.chess.engine.Alliance opponentAlliance = movingAlliance.getOpponent();
+
+            (movingAlliance.isWhite() ? board.getWhitePieces() : board.getBlackPieces()).stream()
                  .filter(p -> !movedPiece.equals(p)).forEach(builder::setPiece);
-            board.currentPlayer().getOpponent().getActivePieces().forEach(builder::setPiece);
+            (opponentAlliance.isWhite() ? board.getWhitePieces() : board.getBlackPieces()).forEach(builder::setPiece);
             final com.chess.engine.pieces.Pawn movedPawn = (com.chess.engine.pieces.Pawn) movedPiece.movePiece(this);
             builder.setPiece(movedPawn);
             builder.setEnPassantPawn(movedPawn);
-            builder.setMoveMaker(board.currentPlayer().getOpponent().getAlliance());
+            builder.setMoveMaker(opponentAlliance);
             return builder.build();
         }
     }
@@ -179,12 +188,15 @@ public abstract sealed class Move
         public Board execute() {
             final Board movedBoard = decoratedMove.execute();
             final Board.Builder builder = new Board.Builder();
-            movedBoard.currentPlayer().getActivePieces().stream()
+            final com.chess.engine.Alliance movingAlliance = this.movedPiece.getPieceAlliance();
+            final com.chess.engine.Alliance opponentAlliance = movingAlliance.getOpponent();
+
+            (movingAlliance.isWhite() ? movedBoard.getWhitePieces() : movedBoard.getBlackPieces()).stream()
                       .filter(p -> !promotedPawn.equals(p)).forEach(builder::setPiece);
-            movedBoard.currentPlayer().getOpponent().getActivePieces().forEach(builder::setPiece);
+            (opponentAlliance.isWhite() ? movedBoard.getWhitePieces() : movedBoard.getBlackPieces()).forEach(builder::setPiece);
             // Default promotion to Queen
             builder.setPiece(promotedPawn.getPromotionPiece().movePiece(this));
-            builder.setMoveMaker(movedBoard.currentPlayer().getAlliance());
+            builder.setMoveMaker(opponentAlliance);
             return builder.build();
         }
         @Override public boolean isAttack() { return decoratedMove.isAttack(); }
@@ -212,13 +224,16 @@ public abstract sealed class Move
         @Override
         public Board execute() {
             final Board.Builder builder = new Board.Builder();
-            board.currentPlayer().getActivePieces().stream()
+            final com.chess.engine.Alliance movingAlliance = this.movedPiece.getPieceAlliance();
+            final com.chess.engine.Alliance opponentAlliance = movingAlliance.getOpponent();
+
+            (movingAlliance.isWhite() ? board.getWhitePieces() : board.getBlackPieces()).stream()
                  .filter(p -> !movedPiece.equals(p) && !castleRook.equals(p))
                  .forEach(builder::setPiece);
-            board.currentPlayer().getOpponent().getActivePieces().forEach(builder::setPiece);
+            (opponentAlliance.isWhite() ? board.getWhitePieces() : board.getBlackPieces()).forEach(builder::setPiece);
             builder.setPiece(movedPiece.movePiece(this));
             builder.setPiece(new com.chess.engine.pieces.Rook(castleRookDestination, castleRook.getPieceAlliance(), false));
-            builder.setMoveMaker(board.currentPlayer().getOpponent().getAlliance());
+            builder.setMoveMaker(opponentAlliance);
             return builder.build();
         }
     }

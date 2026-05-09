@@ -54,8 +54,8 @@ public final class Pawn extends Piece {
             }
             // ---- 2. Double pawn push ----
             else if (currentCandidateOffset == 16 && this.isFirstMove()
-                    && ((BoardUtils.SECOND_RANK[this.piecePosition] && this.pieceAlliance.isBlack())
-                     || (BoardUtils.SEVENTH_RANK[this.piecePosition] && this.pieceAlliance.isWhite()))) {
+                    && ((BoardUtils.SECOND_RANK[this.piecePosition] && this.pieceAlliance.isWhite())
+                     || (BoardUtils.SEVENTH_RANK[this.piecePosition] && this.pieceAlliance.isBlack()))) {
                 final int behindCandidateDestinationCoordinate =
                         this.piecePosition + (this.pieceAlliance.getDirection() * 8);
                 if (!board.getTile(behindCandidateDestinationCoordinate).isOccupied()

@@ -78,6 +78,9 @@ public final class Board {
         ).collect(Collectors.toUnmodifiableList());
     }
 
+    public Collection<Move> getWhiteStandardLegalMoves() { return whiteStandardLegalMoves; }
+    public Collection<Move> getBlackStandardLegalMoves() { return blackStandardLegalMoves; }
+
     // ---- Internal helpers ----
 
     private static List<Tile> createGameBoard(Builder builder) {

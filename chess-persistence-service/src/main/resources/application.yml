@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: chess-persistence-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  datasource:
+    url: jdbc:mysql://localhost:3306/chess_persistence?createDatabaseIfNotExist=true&useSSL=false
+    username: ${DB_USER:chess_user}
+    password: ${DB_PASS:chess_pass}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+server:
+  port: 8084
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html

@@ -32,13 +32,19 @@ class TestCheckmate {
     }
 
     /**
-     * Back-rank mate: White Queen on d8, Black King on e8, all escape squares covered.
-     * FEN: 3Qk3/8/8/8/8/8/8/4K3 b - - 0 1
+     * Back-rank mate: White Queen on c8 covers entire rank 8.
+     * Black King on h8, Black pawns on g7/h7 block all escape squares.
+     * FEN: 2Q4k/6pp/8/8/8/8/8/7K b - - 0 1
+     *
+     * Escape analysis:
+     *  - g8: covered by Queen (rank 8)
+     *  - h7: blocked by own pawn
+     *  - g7: blocked by own pawn
      */
     @Test
     @DisplayName("Back-rank mate is detected")
     void backRankMateDetected() {
-        final String fen = "3Qk3/8/8/8/8/8/8/4K3 b - - 0 1";
+        final String fen = "2Q4k/6pp/8/8/8/8/8/7K b - - 0 1";
         final Board board = FenUtilities.createGameFromFEN(fen);
         assertThat(board.currentPlayer().isInCheckMate()).isTrue();
     }

@@ -1,0 +1,112 @@
+version: "3.9"
+
+# ============================================================
+# Chess Platform — Docker Compose
+# Starts: MySQL, Redis, and all 5 microservices
+# Usage: docker-compose up --build
+# ============================================================
+
+services:
+
+  # ---- Infrastructure ----
+
+  mysql:
+    image: mysql:8.0
+    container_name: chess-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_USER: chess_user
+      MYSQL_PASSWORD: chess_pass
+      MYSQL_DATABASE: chess_games
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docs/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: chess-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+
+  # ---- Microservices ----
+
+  chess-api-gateway:
+    build:
+      context: .
+      dockerfile: chess-api-gateway/Dockerfile
+    container_name: chess-api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - chess-game-service
+      - chess-ai-service
+      - chess-multiplayer-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+  chess-game-service:
+    build:
+      context: .
+      dockerfile: chess-game-service/Dockerfile
+    container_name: chess-game-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - DB_USER=chess_user
+      - DB_PASS=chess_pass
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/chess_games?createDatabaseIfNotExist=true
+      - REDIS_HOST=redis
+
+  chess-ai-service:
+    build:
+      context: .
+      dockerfile: chess-ai-service/Dockerfile
+    container_name: chess-ai-service
+    ports:
+      - "8082:8082"
+
+  chess-multiplayer-service:
+    build:
+      context: .
+      dockerfile: chess-multiplayer-service/Dockerfile
+    container_name: chess-multiplayer-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - REDIS_HOST=redis
+
+  chess-persistence-service:
+    build:
+      context: .
+      dockerfile: chess-persistence-service/Dockerfile
+    container_name: chess-persistence-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - DB_USER=chess_user
+      - DB_PASS=chess_pass
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/chess_history
+
+volumes:
+  mysql_data:

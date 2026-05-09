@@ -19,13 +19,11 @@ import com.chess.engine.pieces.Rook;
 public abstract sealed class Move
         permits Move.MajorMove,
                 Move.AttackMove,
-                Move.MajorAttackMove,
                 Move.PawnMove,
-                Move.PawnAttackMove,
-                Move.PawnEnPassantAttack,
                 Move.PawnJump,
                 Move.PawnPromotion,
-                Move.CastleMove {
+                Move.CastleMove,
+                Move.NullMove {
 
     protected final Board board;
     protected final Piece movedPiece;
@@ -81,10 +79,6 @@ public abstract sealed class Move
                 && movedPiece.equals(move.movedPiece);
     }
 
-    // ====================================================================
-    //  Concrete Move Types
-    // ====================================================================
-
     /** Quiet move — no capture. */
     public static final class MajorMove extends Move {
         public MajorMove(Board board, Piece movedPiece, int destinationCoordinate) {
@@ -97,9 +91,10 @@ public abstract sealed class Move
     }
 
     /** Base class for all captures. */
-    public abstract static non-sealed class AttackMove extends Move {
+    public abstract static sealed class AttackMove extends Move
+            permits MajorAttackMove, PawnAttackMove {
         protected final Piece attackedPiece;
-        public AttackMove(Board board, Piece movedPiece, int destinationCoordinate, Piece attackedPiece) {
+        protected AttackMove(Board board, Piece movedPiece, int destinationCoordinate, Piece attackedPiece) {
             super(board, movedPiece, destinationCoordinate);
             this.attackedPiece = attackedPiece;
         }
@@ -118,14 +113,15 @@ public abstract sealed class Move
     }
 
     // ---- Pawn Moves ----
-    public static class PawnMove extends Move {
+    public static non-sealed class PawnMove extends Move {
         public PawnMove(Board board, Piece movedPiece, int destinationCoordinate) {
             super(board, movedPiece, destinationCoordinate);
         }
         @Override public String toString() { return BoardUtils.getPositionAtCoordinate(destinationCoordinate); }
     }
 
-    public static class PawnAttackMove extends AttackMove {
+    public static sealed class PawnAttackMove extends AttackMove
+            permits PawnEnPassantAttack {
         public PawnAttackMove(Board board, Piece movedPiece, int dest, Piece attackedPiece) {
             super(board, movedPiece, dest, attackedPiece);
         }
@@ -162,7 +158,7 @@ public abstract sealed class Move
             board.currentPlayer().getActivePieces().stream()
                  .filter(p -> !movedPiece.equals(p)).forEach(builder::setPiece);
             board.currentPlayer().getOpponent().getActivePieces().forEach(builder::setPiece);
-            final Pawn movedPawn = (Pawn) movedPiece.movePiece(this);
+            final com.chess.engine.pieces.Pawn movedPawn = (com.chess.engine.pieces.Pawn) movedPiece.movePiece(this);
             builder.setPiece(movedPawn);
             builder.setEnPassantPawn(movedPawn);
             builder.setMoveMaker(board.currentPlayer().getOpponent().getAlliance());
@@ -172,12 +168,12 @@ public abstract sealed class Move
 
     public static final class PawnPromotion extends Move {
         private final Move decoratedMove;
-        private final Pawn promotedPawn;
+        private final com.chess.engine.pieces.Pawn promotedPawn;
 
         public PawnPromotion(Move decoratedMove) {
             super(decoratedMove.getBoard(), decoratedMove.getMovedPiece(), decoratedMove.getDestinationCoordinate());
             this.decoratedMove = decoratedMove;
-            this.promotedPawn = (Pawn) decoratedMove.getMovedPiece();
+            this.promotedPawn = (com.chess.engine.pieces.Pawn) decoratedMove.getMovedPiece();
         }
         @Override
         public Board execute() {
@@ -197,19 +193,20 @@ public abstract sealed class Move
     }
 
     // ---- Castling ----
-    public abstract static non-sealed class CastleMove extends Move {
-        protected final Rook castleRook;
+    public abstract static sealed class CastleMove extends Move
+            permits KingSideCastleMove, QueenSideCastleMove {
+        protected final com.chess.engine.pieces.Rook castleRook;
         protected final int castleRookStart;
         protected final int castleRookDestination;
 
-        public CastleMove(Board board, Piece movedPiece, int dest,
-                          Rook castleRook, int castleRookStart, int castleRookDest) {
+        protected CastleMove(Board board, Piece movedPiece, int dest,
+                          com.chess.engine.pieces.Rook castleRook, int castleRookStart, int castleRookDest) {
             super(board, movedPiece, dest);
             this.castleRook = castleRook;
             this.castleRookStart = castleRookStart;
             this.castleRookDestination = castleRookDest;
         }
-        public Rook getCastleRook() { return castleRook; }
+        public com.chess.engine.pieces.Rook getCastleRook() { return castleRook; }
         @Override public boolean isCastlingMove() { return true; }
 
         @Override
@@ -220,7 +217,7 @@ public abstract sealed class Move
                  .forEach(builder::setPiece);
             board.currentPlayer().getOpponent().getActivePieces().forEach(builder::setPiece);
             builder.setPiece(movedPiece.movePiece(this));
-            builder.setPiece(new Rook(castleRookDestination, castleRook.getPieceAlliance(), false));
+            builder.setPiece(new com.chess.engine.pieces.Rook(castleRookDestination, castleRook.getPieceAlliance(), false));
             builder.setMoveMaker(board.currentPlayer().getOpponent().getAlliance());
             return builder.build();
         }
@@ -228,7 +225,7 @@ public abstract sealed class Move
 
     public static final class KingSideCastleMove extends CastleMove {
         public KingSideCastleMove(Board b, Piece mp, int dest,
-                                  Rook rook, int rookStart, int rookDest) {
+                                  com.chess.engine.pieces.Rook rook, int rookStart, int rookDest) {
             super(b, mp, dest, rook, rookStart, rookDest);
         }
         @Override public String toString() { return "O-O"; }
@@ -236,7 +233,7 @@ public abstract sealed class Move
 
     public static final class QueenSideCastleMove extends CastleMove {
         public QueenSideCastleMove(Board b, Piece mp, int dest,
-                                   Rook rook, int rookStart, int rookDest) {
+                                   com.chess.engine.pieces.Rook rook, int rookStart, int rookDest) {
             super(b, mp, dest, rook, rookStart, rookDest);
         }
         @Override public String toString() { return "O-O-O"; }

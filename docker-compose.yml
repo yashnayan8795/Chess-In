@@ -46,7 +46,7 @@ services:
       dockerfile: chess-api-gateway/Dockerfile
     container_name: chess-api-gateway
     ports:
-      - "8080:8080"
+      - "9090:9090"
     depends_on:
       - chess-game-service
       - chess-ai-service

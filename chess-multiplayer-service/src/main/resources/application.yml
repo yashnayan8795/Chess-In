@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: chess-multiplayer-service
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+server:
+  port: 8083
+
+logging:
+  level:
+    com.chess: DEBUG
+    org.springframework.web.socket: INFO

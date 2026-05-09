@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: chess-ai-service
+
+server:
+  port: 8082
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.chess: DEBUG

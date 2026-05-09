@@ -10,40 +10,51 @@ spring:
             allowedOrigins: "*"
             allowedMethods: "*"
             allowedHeaders: "*"
+
       routes:
-        # ---- Chess Game Service ----
+        # ---- Game Service (Secured) ----
         - id: game-service
           uri: http://localhost:8081
           predicates:
             - Path=/api/v1/games/**
           filters:
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 20
-                redis-rate-limiter.burstCapacity: 40
+            - JwtAuthenticationFilter
 
-        # ---- Chess AI Service ----
+        # ---- AI Service (Secured) ----
         - id: ai-service
           uri: http://localhost:8082
           predicates:
             - Path=/api/v1/ai/**
           filters:
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 5
-                redis-rate-limiter.burstCapacity: 10
+            - JwtAuthenticationFilter
 
-        # ---- Multiplayer Service ----
+        # ---- Multiplayer Service (Secured) ----
         - id: multiplayer-service
           uri: http://localhost:8083
           predicates:
             - Path=/ws/**
+          filters:
+            - JwtAuthenticationFilter
+
+        # ---- Auth Service (Public - to be implemented) ----
+        - id: auth-service
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/v1/auth/**
 
 server:
-  port: 8080
+  port: 9090
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics
+
+jwt:
+  secret: "your-256-bit-secret-key-goes-here-and-it-must-be-very-long"
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.chess: DEBUG

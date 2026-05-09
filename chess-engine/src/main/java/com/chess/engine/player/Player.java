@@ -36,7 +36,6 @@ public abstract class Player {
         this.board       = board;
         this.playerKing  = establishKing();
         this.isInCheck   = !calculateAttacksOnTile(this.playerKing.getPiecePosition(), opponentMoves).isEmpty();
-        // Include castling moves in the complete legal set
         this.legalMoves  = Collections.unmodifiableList(
                 Stream.concat(legalMoves.stream(), calculateKingCastles(legalMoves, opponentMoves).stream())
                       .collect(Collectors.toList())
@@ -60,7 +59,12 @@ public abstract class Player {
     public boolean isKingSideCastleCapable()  { return playerKing.isKingSideCastleCapable(); }
     public boolean isQueenSideCastleCapable() { return playerKing.isQueenSideCastleCapable(); }
 
-    public Collection<Move> getLegalMoves() { return legalMoves; }
+    public Collection<Move> getLegalMoves() {
+        return this.legalMoves.stream()
+                .filter(move -> !move.isAttack() || !move.getAttackedPiece().getPieceType().isKing())
+                .filter(move -> makeMove(move).getMoveStatus().isDone())
+                .collect(Collectors.toList());
+    }
 
     /** Attempt to make a move; returns MoveTransition describing success/failure. */
     public MoveTransition makeMove(Move move) {
@@ -70,7 +74,9 @@ public abstract class Player {
         final Board transitionedBoard = move.execute();
         final Collection<Move> kingAttacks = calculateAttacksOnTile(
                 transitionedBoard.currentPlayer().getOpponent().getPlayerKing().getPiecePosition(),
-                transitionedBoard.currentPlayer().getLegalMoves()
+                transitionedBoard.currentPlayer().getAlliance().isWhite()
+                        ? transitionedBoard.getWhiteStandardLegalMoves()
+                        : transitionedBoard.getBlackStandardLegalMoves()
         );
         if (!kingAttacks.isEmpty()) {
             return new MoveTransition(board, board, move, MoveStatus.LEAVES_PLAYER_IN_CHECK);

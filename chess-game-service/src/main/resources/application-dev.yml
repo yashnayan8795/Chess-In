@@ -1,0 +1,38 @@
+# ============================================================
+# Spring Profile: dev
+# Uses H2 in-memory database — no MySQL or Redis required.
+# Activate with: -Dspring.profiles.active=dev
+# (set as default in application.yml)
+# ============================================================
+spring:
+  datasource:
+    url: jdbc:h2:mem:chess_dev;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop   # Re-creates schema on every restart
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  # Disable dialect warning (not needed for H2)
+  h2:
+    console:
+      enabled: true           # Browse schema at http://localhost:8081/h2-console
+      path: /h2-console
+  # Disable Redis — use simple in-memory cache instead
+  cache:
+    type: simple
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+logging:
+  level:
+    com.chess: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG

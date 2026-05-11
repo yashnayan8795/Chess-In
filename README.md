@@ -87,3 +87,7 @@ Include the token in the `Authorization` header for subsequent requests:
 curl -X GET http://localhost:9090/api/v1/games/{gameId} \
      -H "Authorization: Bearer <your_jwt_token_here>"
 ```
+
+
+## Snapshot 
+<img width="1918" height="1006" alt="image" src="https://github.com/user-attachments/assets/def241db-f26b-4eab-807a-69e58b66f450" />
